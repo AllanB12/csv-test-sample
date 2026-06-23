@@ -1,5 +1,8 @@
 FROM rocker/shiny:latest
 
+# Install shiny package
+RUN R -e "install.packages('shiny', repos='https://cran.rstudio.com/')"
+
 RUN mkdir -p /srv/shiny-server/app
 
 COPY app.R /srv/shiny-server/app/
