@@ -1,14 +1,23 @@
-FROM rocker/shiny:4.3.0
+FROM rocker/shiny:4.3.2
 
-RUN mkdir -p /srv/shiny-server/app
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY app.R /srv/shiny-server/app/
-COPY data.csv /srv/shiny-server/app/
+RUN R -q -e "install.packages(c('shiny'), repos='https://cran.rstudio.com/', quiet=TRUE)"
 
-RUN chmod -R 755 /srv/shiny-server/app
+RUN mkdir -p /srv/shiny_app /data \
+    && chgrp -R 0 /srv/shiny_app /data \
+    && chmod -R g+rwX /srv/shiny_app /data
 
-WORKDIR /srv/shiny-server/app
+COPY app.R /srv/shiny_app/
 
-EXPOSE 3838
+WORKDIR /srv/shiny_app
 
-CMD ["R", "-e", "shiny::runApp('/srv/shiny-server/app/app.R', host='0.0.0.0', port=3838)"]
+EXPOSE 8080
+
+CMD ["R", "-e", "shiny::runApp('/srv/shiny_app/app.R', host='0.0.0.0', port=8080)"]
